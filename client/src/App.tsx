@@ -1,13 +1,12 @@
-
-
-function App() {
-
-
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./Components/User/Login";
+const App = () => {
   return (
-    <>
-      
-    </>
-  )
-}
-
-export default App
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </Router>
+  );
+};
+export default App;
