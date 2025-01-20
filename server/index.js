@@ -10,7 +10,7 @@ app.use(cors('https://localhost:5173/'));
 const PORT = process.env.PORT||8000;
 
 
-app.use('/v1',authRouter)
+app.use('/api/v1',authRouter)
 app.get("/", (req, res) => {
   res.send("<h1>Hi, I am the backend!!</h1>");
 });
