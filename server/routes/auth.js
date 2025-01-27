@@ -1,7 +1,9 @@
 import { Router } from "express";
 import LoginController from "../controllers/loginController.js";
+import getUserData from "../controllers/getUserData.js";
 const router=Router();
 
-router.post('/access_token',LoginController);
+router.get('/access_token',LoginController);
+router.get('/user_data',getUserData)
 
 export default router;
