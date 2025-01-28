@@ -1,51 +1,17 @@
-// import { useEffect ,useState } from "react";
-
 import { useEffect, useState } from "react"
 import axios from "axios";
 interface UserData{
     login:string,
     name:string
 }
-
-// const Home = () => {
-//     const [render,setRender]=useState(false)
-//     useEffect(()=>{
-//     const query = window.location.search;
-//     const urlParams = new URLSearchParams(query);
-//     const codeParam = urlParams.get("code");
-//     console.log(codeParam);
-  
-//     if (codeParam && (localStorage.getItem("access_token")===null)) { //get Access_Token from backend
-//         const getAccessToken=async()=>{
-//             await fetch("http://localhost:8000/api/v1/access_token?code="+codeParam ,{
-//                 method:"GET"
-//             }).then((response)=>{
-//                 return response.json();
-//             }).then((data)=>{
-//                 const AccessParams=new URLSearchParams(data);
-//                 const access_token=AccessParams.get("access_token")
-//                 if(access_token){
-//                     localStorage.setItem("access_token",access_token); 
-//                     setRender(!render)
-//                 }
-//             })
-//         }
-//         getAccessToken();
-//         console.log("Authorization Code:", codeParam);
-//     } else {
-//       console.log("No authorization code found.");
-//     }
-//     },[])
-//   return (
-//     <div>Home</div>
-//   )
-// }
-
-// export default Home
+interface Repo{
+    name:string
+}
 
 const Home=()=>{
     const [rerender,setRerender]=useState<true|false>(false);
     const [userData,setUserData]=useState<UserData | null> (null)
+    const [userRepos,setUserRepos]=useState<Repo[]>([]);
     useEffect(()=>{
         const searchURL=window.location.search; 
         const queryParams=new URLSearchParams(searchURL)
@@ -75,12 +41,20 @@ const Home=()=>{
     const getUserData=async()=>{
         const response=await axios.get("http://localhost:8000/api/v1/user_data",{
             headers:{
-                "Authorization":"Bearer "+localStorage.getItem("access_token") //Bearer ACCESSTOKEN
+                "Authorization":"Bearer "+localStorage.getItem("access_token") //format-->Bearer ACCESSTOKEN
             }
         })
         const data =response.data;
         console.log(data);
-        setUserData(data)
+        setUserData(data);
+        if(data.repos_url)
+        getRepos(data?.repos_url)
+    }
+    const getRepos=async(URL:string)=>{
+        const res=await axios.get(URL);
+        const data= res.data;
+        setUserRepos(data);
+        console.log(userRepos)
     }
     return(
         <div>
@@ -99,13 +73,21 @@ const Home=()=>{
                 <>
                 <h4>{userData?.login}</h4>
                 <h4>{userData?.name}</h4>
+                <div>{userRepos?<>
+                {userRepos.map((repo)=>{
+                    return (
+                        <h4>{repo?.name}</h4>
+                    )
+                })}
+                </>:<></>}</div>
+                
                 </>:<></>
             }
             </>
             :
             <>
             <h3>user is not logged in</h3>
-            <a href="/login"></a>
+            <a href="/login">login</a>
             </>}
         </div>
     )
