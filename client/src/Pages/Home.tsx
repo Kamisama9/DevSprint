@@ -1,46 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { DataStore } from "../store/DataStore";
 
-
 const Home = () => {
-
-  const [loading, setLoading] = useState<boolean>(false);
   const { fetchAccessToken } = useAuth();
-  const { userData, getUserData ,userRepos} = DataStore();
+  const { accessToken, userData, userRepos, getUserData, loading, error ,logout} = DataStore();
+
   useEffect(() => {
-    //will run onces the we will return back from login to home page with code
-    const searchURL = window.location.search; //take URL from search bar
-    const queryParams = new URLSearchParams(searchURL);
-    const codeParam = queryParams.get("code");
+    const searchParams = new URLSearchParams(window.location.search);
+    const codeParam = searchParams.get("code");
 
-    if (codeParam && !localStorage.getItem("access_token")) {
-      setLoading(true);
+    if (codeParam && !accessToken) {
       fetchAccessToken(codeParam);
-      setLoading(false);
     }
-  }, [fetchAccessToken]);
-
+  }, [fetchAccessToken, accessToken]);
 
   return (
     <div>
-      {localStorage.getItem("access_token") ? (
+      {accessToken ? (
         <>
-          <h1>Hi User</h1>
-          {/* <button onClick={handleLogout}>Log Out</button> */}
-          <h3>Get User Data</h3>
+          <h1>Hi, User</h1>
+          <button onClick={logout}>Logout</button>
           <button onClick={getUserData} disabled={loading}>
-            {loading ? "Loading..." : "Get Data"}
+            {loading ? "Loading..." : "Get User Data"}
           </button>
+
+
           {userData && (
             <>
-              <h4>{userData.login}</h4>
-              <h4>{userData.name}</h4>
-              <div>
-                {userRepos.map((repo, index) => (
-                  <h4 key={index}>{repo.name}</h4>
-                ))}
-              </div>
+              <h4>Username: {userData.login}</h4>
+              <h4>Name: {userData.name}</h4>
+
+              <h3>User Repositories</h3>
+              {userRepos.length > 0 ? (
+                userRepos.map((repo, index) => <h4 key={index}>{repo.name}</h4>)
+              ) : (
+                <p>No repositories found.</p>
+              )}
             </>
           )}
         </>
@@ -50,7 +46,8 @@ const Home = () => {
           <a href="/login">Login</a>
         </>
       )}
-      
+
+      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 };

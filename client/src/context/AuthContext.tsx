@@ -1,5 +1,6 @@
 import axios from "axios";
 import { createContext, ReactNode, useContext} from "react";
+import { DataStore } from "../store/DataStore";
 interface Authtype {
   fetchAccessToken: (code: string) => Promise<void>;
 }
@@ -11,6 +12,7 @@ const AuthContext = createContext<Authtype | undefined>(undefined); //creaContex
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   //Here, it indicates that the component expects an object with a children property, and children must be of type ReactNode.
+  const { setAccessToken } = DataStore(); 
   const fetchAccessToken = async (code: string) => {
     try {
       const res = await axios.get(
@@ -20,9 +22,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const access_token = params.get("access_token");
       if (access_token) {
         localStorage.setItem("access_token", access_token);
+        setAccessToken(access_token);
       }
     } catch (err) {
-      console.log(err);
+      console.error("Error fetching access token:", err);
     }
   };
   return (
