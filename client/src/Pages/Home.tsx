@@ -5,7 +5,8 @@ import { DataStore } from "../store/DataStore";
 const Home = () => {
   const { fetchAccessToken } = useAuth();
   const { accessToken, userData, userRepos, getUserData, loading, error ,logout} = DataStore();
-
+  console.log(userData)
+  console.log(userRepos)
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const codeParam = searchParams.get("code");

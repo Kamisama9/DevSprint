@@ -1,15 +1,58 @@
 import axios from "axios";
-const getUserData=async (req,res)=>{
-    req.get("Authorization"); //Bearer ACCESS_TOKEN 
-    const response=await axios.get("https://api.github.com/user",{
-        headers:{
-            "Authorization":req.get("Authorization") //Bearer ACCESS_TOKEN 
-        }
-    })
-    //const data=response.json(); // no need as axios automatically parser data to JSON (if applicable)
-    const data =response.data;
-    console.log(data)
-    res.json(data) //send the data back to user
-}
- 
+
+const getUserData = async (req, res) => {
+  try {
+    // Fetch user data
+    const userResponse = await axios.get("https://api.github.com/user", {
+      headers: {
+        Authorization: req.get("Authorization"), // Bearer ACCESS_TOKEN
+      },
+    });
+
+    const userData = userResponse.data;
+    // Fetch repositories of the user
+    const reposResponse = await axios.get(userData.repos_url, {
+      headers: {
+        Authorization: req.get("Authorization"), 
+      },
+    });
+
+    const userRepos = reposResponse.data.map((repo) => ({
+      name: repo.name,
+      html_url: repo.html_url,
+      commits_url: repo.commits_url.replace("{/sha}", ""),
+    }));
+    // Fetch commits for each repository
+    const commitsPromises = userRepos.map(async (repo) => {
+      try {
+        const commitsResponse = await axios.get(repo.commits_url, {
+          headers: {
+            Authorization: req.get("Authorization"),
+          },
+        });
+
+        const commits = commitsResponse.data.map((commit) => ({
+          message: commit.commit.message,
+          date: commit.commit.committer.date,
+          author: commit.commit.committer.name,
+        }));
+
+        return { ...repo, commits }; // Add commits to the repo object
+      } catch (error) {
+        console.error(`Error fetching commits for repo: ${repo.name}`, error);
+        return { ...repo, commits: [] }; // Return empty commits in case of error
+      }
+    });
+
+    // Wait for all commit promises to resolve
+    const reposWithCommits = await Promise.all(commitsPromises);
+    console.log(reposWithCommits)
+    // Send user data along with repositories and their commits to frontend
+    res.json({ userData, userRepos: reposWithCommits });
+  } catch (error) {
+    console.error("Error fetching user data or repositories:", error);
+    res.status(500).json({ error: "Failed to fetch user data or repositories" });
+  }
+};
+
 export default getUserData;

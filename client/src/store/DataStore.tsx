@@ -57,7 +57,7 @@ export const DataStore = create<StoreType>((set, get) => ({
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data = res.data;
-
+      console.log(data)
       set({ userData: data });
 
       if (data.repos_url) {
