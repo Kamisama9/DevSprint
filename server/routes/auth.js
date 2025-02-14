@@ -1,6 +1,6 @@
 import { Router } from "express";
 import LoginController from "../controllers/loginController.js";
-import getUserData from "../controllers/getUserData.js";
+import getUserData from "../controllers/userController.js";
 const router=Router();
 
 router.get('/access_token',LoginController);
