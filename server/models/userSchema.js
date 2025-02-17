@@ -10,6 +10,16 @@ const userSchema = new mongoose.Schema(
     name: {
       type: String,
     },
+    repos_url: {
+      type: String,
+      required: true,
+      validate: {
+        validator: function (v) {
+          return /^(https?:\/\/)[\w\-]+(\.[\w\-]+)+[/#?]?.*$/.test(v);
+        },
+        message: (props) => `${props.value} is not a valid URL!`,
+      },
+    },
     repos: [
       {
         type: mongoose.Types.ObjectId,

@@ -32,6 +32,7 @@ const fetchUserRepo = async (repoUrl, authorization) => {
 
 // Fetch commits for a repository from GitHub API
 const fetchUserCommits = async (commitUrl, authorization) => {
+
   try {
     const response = await axios.get(commitUrl, {
       headers: {

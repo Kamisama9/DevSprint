@@ -4,12 +4,13 @@ import Repo from "../models/repoSchema.js";
 // Find or create a user based on user data
 const findOrCreateUser = async (userData) => {
   try {
-    let user = await User.findOne({ username: userData.username });
+    let user = await User.findOne({ username: userData.username }).populate('repos').exec();
 
     if (!user) {
       user = new User({
-        username: userData.username, 
+        username: userData.login, 
         name: userData.name || "",
+        repos_url:userData.repos_url,
         repos: [],
       });
       await user.save();

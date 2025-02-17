@@ -21,11 +21,10 @@
 //     // Fetch repositories of the user
 //     const reposResponse = await axios.get(userData.repos_url, {
 //       headers: {
-//         Authorization: req.get("Authorization"), 
+//         Authorization: req.get("Authorization"),
 //       },
 //     });ait user.save();
-//     
-
+//
 
 //     const userRepos = reposResponse.data.map((repo) => ({
 //       name: repo.name,
@@ -75,49 +74,61 @@
 
 // export default getUserData;
 
-import {findOrCreateUser, getRepoDetails} from "./dataController.js";
-import { fetchUserCommits, fetchUserData, fetchUserRepo } from "../utils/githubApi";
+import { findOrCreateUser, getRepoDetails } from "./dataController.js";
+import {
+  fetchUserCommits,
+  fetchUserData,
+  fetchUserRepo,
+} from "../utils/githubApi.js";
 
-const checkOutdated=(lastupdate)=>{
-  const now=Date.now();
-  const diff=now-new Date(lastupdate);
-  return diff>24*60*60*1000 //true if less than 24 hours
-}
-const getUserData=async(req,res)=>{
+const checkOutdated = (lastupdate) => {
+  const now = Date.now();
+  const diff = now - new Date(lastupdate);
+  return diff > 24 * 60 * 60 * 1000; //true if less than 24 hours
+};
+const getUserData = async (req, res) => {
   try {
-    const userData=getData(req);
-    res.json(userData);
+    const userRepos =await getData(req);
+    console.log(userRepos)
+    res.json(userRepos);
   } catch (error) {
-    res.error(500).json({error:"Failed to fetch user data"});
+    res.error(500).json({ error: "Failed to fetch user data" });
   }
-}
+};
 
-const getData=async(req)=>{
-  const authorization=req.get("Authorization");
-  const userData=await fetchUserData(authorization);
+const getData = async (req) => {
+  const authorization = req.get("Authorization");
+  const userData = await fetchUserData(authorization);
+  let user = await findOrCreateUser(userData);
+  // till here required everytime
+  //how to add repos to user part using ref and populate?
+  console.log(user.repos)
+  if(user.repos==[]){
+  const userRepoData = await fetchUserRepo(user.repos_url, authorization);
+  const userRepos = await getReposCommit(userRepoData, authorization);
+  return {userData,userRepos} ;
+  }else{
 
-  let user=await findOrCreateUser(userData);
-  
-  const userRepoData=fetchUserRepo(user.repo_url,authorization);
-  const userRepos=await getReposCommit(userRepoData,authorization);
+  }
+ 
+};
 
-  return {userData,userRepos};
-}
-
-const getReposCommit=async(userRepoData,authorization)=>{
-  const reposWithCommits=await Promise.all(
-    userRepoData.map(async(repo)=>{
+const getReposCommit = async (userRepoData, authorization) => {
+  const reposWithCommits = await Promise.all(
+    userRepoData.map(async (repo) => {
       try {
-        const commit=await fetchUserCommits(repo.commit_url,authorization);
-        await getRepoDetails(repo,commit);
+        const commitsUrl = repo.commits_url.replace('{/sha}', '');
+        const commit = await fetchUserCommits(commitsUrl, authorization);
+        const repos=await getRepoDetails(repo, commit);
 
-        return {...repo,commit}
+        return { repos };
       } catch (error) {
         console.error(`Error fetching commits for repo: ${repo.name}`, error);
         return { ...repo, commits: [] };
       }
     })
-  )
-}
+  );
+  return reposWithCommits.filter(repo=>repo!==null)
+};
 
-export {getUserData}
+export { getUserData };
