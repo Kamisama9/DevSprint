@@ -2,13 +2,13 @@ import { create } from "zustand";
 import axios from "axios";
 
 interface UserData {
-  login: string;
+  username: string;
   name: string;
   repos_url?: string;
 }
 
 interface Repo {
-  name: string;
+  repos: object[];
 }
 
 interface StoreType {
@@ -19,7 +19,6 @@ interface StoreType {
   error: string | null;
   setAccessToken: (token: string | null) => void;
   getUserData: () => Promise<void>;
-  getRepos: (url: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -34,21 +33,8 @@ export const DataStore = create<StoreType>((set, get) => ({
     set({ accessToken: token });
   },
 
-  getRepos: async (url: string) => {
-    try {
-      set({ loading: true, error: null });
-      const response = await axios.get(url);
-      set({ userRepos: response.data });
-    } catch (error) {
-      set({ error: "Failed to fetch repositories" });
-      console.error("Error fetching repos:", error);
-    } finally {
-      set({ loading: false });
-    }
-  },
-
   getUserData: async () => {
-    const { accessToken, getRepos } = get();
+    const { accessToken } = get();
     if (!accessToken) return;
 
     try {
@@ -57,12 +43,9 @@ export const DataStore = create<StoreType>((set, get) => ({
         headers: { Authorization: `Bearer ${accessToken}` },
       });
       const data = res.data;
-      console.log(data)
-      set({ userData: data });
-
-      if (data.repos_url) {
-        await getRepos(data.repos_url);
-      }
+      const {user,userRepos:repos}=data
+      console.log(repos)
+      set({ userData: user ,userRepos:repos});
     } catch (error) {
       set({ error: "Failed to fetch user data" });
       console.error("Error fetching user data:", error);
