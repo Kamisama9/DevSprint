@@ -7,9 +7,14 @@ interface UserData {
   repos_url?: string;
 }
 
-interface Repo {
-  repos: object[];
+
+interface Repos {
+  _id:string,
+  name:string,
 }
+interface Repo {
+  repos: Repos[] 
+};
 
 interface StoreType {
   accessToken: string | null;

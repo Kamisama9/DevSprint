@@ -16,7 +16,7 @@ const Home = () => {
     if (codeParam && !accessToken) {
       fetchAccessToken(codeParam);
     }
-  }, [fetchAccessToken, accessToken]);
+  }, []);
 
   return (
     <div>
